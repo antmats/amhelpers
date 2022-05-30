@@ -50,7 +50,7 @@ def get_class_from_str(s):
 def yield_nested_dict_values(d):
     '''Yield (non-dict) values from a nested dict.
 
-    Code from [1]_.
+    Code from [2]_.
 
     Parameters
     ----------
@@ -64,7 +64,7 @@ def yield_nested_dict_values(d):
 
     References
     ----------
-    .. [1] https://tutorial.eyehunts.com/python/python-get-all-values-from-nested-dictionary-example-code/
+    .. [2] https://tutorial.eyehunts.com/python/python-get-all-values-from-nested-dictionary-example-code/
     '''
     for v in d.values():
         if isinstance(v, dict):
