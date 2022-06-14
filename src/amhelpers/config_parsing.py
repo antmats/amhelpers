@@ -1,3 +1,4 @@
+import copy
 from .amhelpers import get_class_from_str
 from .amhelpers import create_object_from_dict
 
@@ -59,6 +60,8 @@ def get_net_params(default, specified):
     params : dict
         All model parameters.
     '''
+    default = copy.deepcopy(default)
+    specified = copy.deepcopy(default)
     params = {}
     for param, value in default.items():
         if param in (
