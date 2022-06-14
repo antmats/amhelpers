@@ -61,7 +61,7 @@ def get_net_params(default, specified):
         All model parameters.
     '''
     default = copy.deepcopy(default)
-    specified = copy.deepcopy(default)
+    specified = copy.deepcopy(specified)
     params = {}
     for param, value in default.items():
         if param in (
