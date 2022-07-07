@@ -2,6 +2,24 @@ import copy
 from .amhelpers import get_class_from_str
 from .amhelpers import create_object_from_dict
 
+NET_PARAMS = [
+    'module',
+    'criterion',
+    'optimizer',
+    'lr',
+    'max_epochs',
+    'batch_size',
+    'iterator_train',
+    'iterator_valid',
+    'dataset',
+    'train_split',
+    'callbacks',
+    'predict_nonlinearity',
+    'warm_start',
+    'verbose',
+    'device'
+]
+
 def _check_value(value):
     if isinstance(value, (int, float)):
         return value
@@ -26,27 +44,33 @@ def _check_value(value):
     else:
         raise ValueError('The value of type {} is unknown.'.format(type(value)))
 
-def _get_object_and_parameters(name, default_params, specified_params={}):
+def _get_object_and_parameters(name, default_params, specified_params):
     default_params.pop('is_called', None)
     specified_params.pop('is_called', None)
 
     prefix = name + '__'
 
     if 'type' in specified_params:
+        # Take everything from "specified"
         out = {name: get_class_from_str(specified_params.pop('type'))}
         out.update(
             {prefix+k: _check_value(v) for k, v in specified_params.items()}
         )
-    else:
+    elif 'type' in default_params:
+        # Replace default values if they exist in "specified"
         out = {name: get_class_from_str(default_params.pop('type'))}
         out.update(
             {prefix+k: _check_value(specified_params[k]) if k in specified_params else _check_value(default_params[k]) for k in default_params.keys()}
         )
+    else:
+        out = {}
+        for k in set(list(default_params.keys()) + list(specified_params.keys())):
+            out[prefix+k] = _check_value(specified_params[k]) if k in specified_params else _check_value(default_params[k])
 
     return out
 
 def get_net_params(default, specified):
-    '''Get parameters for a Skorch neural net.
+    '''Get parameters for a skorch neural net.
 
     Parameters
     ----------
@@ -62,24 +86,36 @@ def get_net_params(default, specified):
     '''
     default = copy.deepcopy(default)
     specified = copy.deepcopy(specified)
+    
     params = {}
-    for param, value in default.items():
-        if param in (
+    for param in NET_PARAMS:
+        try:
+            default_value = default[param]
+        except KeyError:
+            default_value = {}
+        try:
+            specified_value = specified[param]
+        except KeyError:
+            specified_value = {}
+
+        if param in [
             'module',
             'criterion',
             'optimizer',
             'iterator_train',
             'iterator_valid',
             'dataset'
-        ):
-            if param in specified:
-                params.update(
-                    _get_object_and_parameters(param, value, specified[param])
-                )
-            else:
-                params.update(
-                    _get_object_and_parameters(param, value)
-                )
+        ]:
+            params.update(
+                _get_object_and_parameters(param, default_value, specified_value)
+            )
         else:
-            params[param] = _check_value(specified[param]) if param in specified else _check_value(value)
+            if param in specified:
+                params[param] = _check_value(specified[param])
+            elif param in default:
+                params[param] = _check_value(default_value)
+            else:
+                # Use skorch default
+                pass
+
     return params
