@@ -33,7 +33,15 @@ def _check_value(value):
         if 'type' in value:
             is_called = value.pop('is_called')
             if is_called:
-                return create_object_from_dict(value)
+                has_nested_dict = any(
+                    [isinstance(v, dict) and 'type' in v for v in value.values()]
+                )
+                if has_nested_dict:
+                    return create_object_from_dict(
+                        {k: _check_value(v) for k, v in value.items()}
+                    )
+                else:
+                    return create_object_from_dict(value)
             else:
                 type_str = value['type']
                 return get_class_from_str(type_str)
@@ -51,17 +59,24 @@ def _get_object_and_parameters(name, default_params, specified_params):
     prefix = name + '__'
 
     if 'type' in specified_params:
-        # Take everything from "specified"
+        # Take everything from specified_params
         out = {name: get_class_from_str(specified_params.pop('type'))}
         out.update(
             {prefix+k: _check_value(v) for k, v in specified_params.items()}
         )
     elif 'type' in default_params:
-        # Replace default values if they exist in "specified"
+        # Replace default values if they exist in specified_params
         out = {name: get_class_from_str(default_params.pop('type'))}
-        out.update(
-            {prefix+k: _check_value(specified_params[k]) if k in specified_params else _check_value(default_params[k]) for k in default_params.keys()}
-        )
+        new = {}
+        for k in default_params.keys():
+            if k in specified_params:
+                v = specified_params.pop(k)
+                new[prefix+k] = _check_value(v)
+            else:
+                new[prefix+k] = _check_value(default_params[k])
+        out.update(new)
+        # Add values that exist in specified_params but not in default_params
+        out.update({prefix+k: _check_value(v) for k, v in specified_params.items()})
     else:
         out = {}
         for k in set(list(default_params.keys()) + list(specified_params.keys())):
