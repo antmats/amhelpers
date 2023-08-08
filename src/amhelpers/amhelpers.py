@@ -1,4 +1,8 @@
 import pydoc
+import yaml
+import pickle
+from os.path import join
+from pathlib import Path
 
 def create_object_from_dict(d, **default_kwargs):
     '''Create an object from a dictionary.
@@ -60,7 +64,7 @@ def yield_nested_dict_values(d):
     Returns
     -------
     generator
-        Iterator yielding all (non-dict) values from 'd' and its child dictionaries.
+        Iterator yielding all (non-dict) values from `d` and its child dictionaries.
 
     References
     ----------
@@ -71,3 +75,18 @@ def yield_nested_dict_values(d):
             yield from yield_nested_dict_values(v)
         else:
             yield v
+
+def save_pickle(data, path, filename):
+    Path(path).mkdir(parents=True, exist_ok=True)
+    with open(join(path, filename + '.pickle'), 'wb') as f:
+        pickle.dump(data, f)
+
+def save_yaml(data, path, filename, **kwargs):
+    Path(path).mkdir(parents=True, exist_ok=True)
+    with open(join(path, filename + '.yaml'), 'w') as f:
+        yaml.dump(data, f, default_flow_style=False, **kwargs)
+
+def load_yaml(path):
+    with open(path) as file:
+        yaml_file = yaml.safe_load(file)
+    return yaml_file
