@@ -1,6 +1,11 @@
+import os
 import copy
-from .amhelpers import get_class_from_str
-from .amhelpers import create_object_from_dict
+from pathlib import Path
+from .amhelpers import (
+    get_class_from_str,
+    create_object_from_dict,
+    load_yaml
+)
 
 NET_PARAMS = [
     'module',
@@ -134,3 +139,40 @@ def get_net_params(default, specified):
                 pass
 
     return params
+
+def _change_to_local_paths(d, cluster_project_path, local_project_path):
+    out = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            recursive = {
+                k: _change_to_local_paths(
+                    v,
+                    cluster_project_path,
+                    local_project_path
+                )
+            }
+            out.update(recursive)
+        elif isinstance(k, str) and 'path' in k and isinstance(v, str):
+            out[k] = v.replace(
+                cluster_project_path,
+                local_project_path
+            )
+        else:
+            out[k] = v
+    return out
+
+def load_config(config_path):
+    config = load_yaml(config_path)
+    try:
+        local_home_path = os.environ['LOCAL_HOME_PATH']
+        cluster_project_path = os.environ['CLUSTER_PROJECT_PATH']
+        local_project_path = os.environ['LOCAL_PROJECT_PATH']
+        home_path = str(Path.home())
+        if home_path == local_home_path:
+            return _change_to_local_paths(
+                config,
+                cluster_project_path,
+                local_project_path
+            )
+    except KeyError:
+        return config
