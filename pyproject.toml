@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "amhelpers"
-version = "0.4.1"
+version = "0.4.2"
 description = "A collection of handy utilities."
 authors = ["Anton Matsson"]
 license = "MIT"
