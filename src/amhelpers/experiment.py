@@ -378,18 +378,17 @@ class Postprocessing:
         self,
         sorted_scores,
         sweep_grid,
-        score_iter_start=0,
         setting=None
     ):
         best_scores_list = []
-        i_score = score_iter_start
         
-        for i_sweep, parameters in enumerate(ParameterGrid(sweep_grid), start=1):
+        iterable = ParameterGrid(sweep_grid)
+        for i_sweep, parameters in enumerate(iterable, start=1):
             sweep_index = '%s_%d' % (setting, i_sweep) if setting else i_sweep
             parameters = self._check_parameters(parameters)
             df = pd.DataFrame({'sweep': sweep_index} | parameters, index=[0])
             
-            for scores in sorted_scores[i_score].values():
+            for scores in sorted_scores[i_sweep-1].values():
                 best_exp = scores.exp.iloc[0]
                 best_scores = scores.groupby('exp').get_group(best_exp)
                 best_scores = pd.concat(
@@ -400,8 +399,6 @@ class Postprocessing:
                     axis=1,
                 )
                 best_scores_list.append(best_scores)
-            
-            i_score += 1
         
         return best_scores_list
 
@@ -413,16 +410,17 @@ class Postprocessing:
                 isinstance(sweep_grid, dict) and
                 set(self.settings).issubset(sweep_grid)
             ):
-                score_iter_start = 0
                 for setting in self.settings:
+                    sorted_scores_setting = [
+                        d for d in sorted_scores
+                        if setting in d  # setting is the only key in d
+                    ]
                     best_scores = self._collect_best_scores(
-                        sorted_scores,
+                        sorted_scores_setting,
                         sweep_grid[setting],
-                        score_iter_start,
                         setting
                     )
                     scores_list += best_scores
-                    score_iter_start += len(best_scores)
             else:
                 scores_list += self._collect_best_scores(sorted_scores, sweep_grid)
         else:
