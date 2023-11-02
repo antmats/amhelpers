@@ -1,11 +1,13 @@
 import os
 import copy
 from pathlib import Path
+
 from .amhelpers import (
     get_class_from_str,
     create_object_from_dict,
     load_yaml
 )
+
 
 NET_PARAMS = [
     'module',
@@ -24,6 +26,7 @@ NET_PARAMS = [
     'verbose',
     'device'
 ]
+
 
 def _check_value(value):
     if isinstance(value, (int, float)):
@@ -55,7 +58,8 @@ def _check_value(value):
     elif value is None:
         return value
     else:
-        raise ValueError('The value of type {} is unknown.'.format(type(value)))
+        raise ValueError("The value of type {} is unknown.".format(type(value)))
+
 
 def _get_object_and_parameters(name, default_params, specified_params):
     default_params.pop('is_called', None)
@@ -64,13 +68,13 @@ def _get_object_and_parameters(name, default_params, specified_params):
     prefix = name + '__'
 
     if 'type' in specified_params:
-        # Take everything from specified_params
+        # Take everything from specified_params.
         out = {name: get_class_from_str(specified_params.pop('type'))}
         out.update(
             {prefix+k: _check_value(v) for k, v in specified_params.items()}
         )
     elif 'type' in default_params:
-        # Replace default values if they exist in specified_params
+        # Replace default values if they exist in specified_params.
         out = {name: get_class_from_str(default_params.pop('type'))}
         new = {}
         for k in default_params.keys():
@@ -80,7 +84,7 @@ def _get_object_and_parameters(name, default_params, specified_params):
             else:
                 new[prefix+k] = _check_value(default_params[k])
         out.update(new)
-        # Add values that exist in specified_params but not in default_params
+        # Add values that exist in specified_params but not in default_params.
         out.update({prefix+k: _check_value(v) for k, v in specified_params.items()})
     else:
         out = {}
@@ -89,8 +93,9 @@ def _get_object_and_parameters(name, default_params, specified_params):
 
     return out
 
+
 def get_net_params(default, specified):
-    '''Get parameters for a skorch neural net.
+    """Get parameters for a skorch neural net.
 
     Parameters
     ----------
@@ -103,7 +108,7 @@ def get_net_params(default, specified):
     -------
     params : dict
         All model parameters.
-    '''
+    """
     default = copy.deepcopy(default)
     specified = copy.deepcopy(specified)
     
@@ -135,10 +140,11 @@ def get_net_params(default, specified):
             elif param in default:
                 params[param] = _check_value(default_value)
             else:
-                # Use skorch default
+                # Use skorch default.
                 pass
 
     return params
+
 
 def _change_to_local_paths(d, cluster_project_path, local_project_path):
     out = {}
@@ -160,6 +166,7 @@ def _change_to_local_paths(d, cluster_project_path, local_project_path):
         else:
             out[k] = v
     return out
+
 
 def load_config(config_path):
     config = load_yaml(config_path)
