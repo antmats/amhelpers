@@ -30,18 +30,18 @@ def update_nested_dict(nested_dict, key_string, value):
     nested_dict : dict
         The nested dictionary.
     key_string : str
-        A string of keys separated by '__'.
+        A string of keys separated by '::'.
     value : any
         The value to be inserted into the dictionary.
 
     Examples
     --------
     >>> d = {'a': {'b': {'c': 1}}}
-    >>> update_nested_dict(d, 'a__b__c', 2)
+    >>> update_nested_dict(d, 'a::b::c', 2)
     >>> d
     {'a': {'b': {'c': 2}}}
     """
-    keys = key_string.split('__')
+    keys = key_string.split('::')
     current = nested_dict
     for key in keys[:-1]:
         current = current.setdefault(key, {})
