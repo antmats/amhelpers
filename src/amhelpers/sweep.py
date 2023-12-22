@@ -124,7 +124,6 @@ class Sweep:
                         hparams_seed
                     )
                     
-                    # Need to change to something different than "sweep"!
                     results_path = join(
                         self.path, sweep_dir_name, f'trial_{trial_seed:02d}',
                         f'{estimator}_{hparams_seed:02d}'
@@ -347,11 +346,11 @@ class Postprocessing:
         scores = pd.read_csv(scores_path)
 
         dirs_to_keep = []
-        if scores.column[0] != 'trial':
+        if scores.columns[0] != 'trial':
             assert scores.columns[1:3].tolist() == ['trial', 'exp']
-            sweep_param = scores.column[0]
+            sweep_param = scores.columns[0]
             for sweep_param_value, trial, exp in scores.iloc[:, :3].values:
-                sweep = f'{sweep_param}_{sweep_param_value}'
+                sweep = f'sweep_{sweep_param}_{sweep_param_value}'
                 dirs_to_keep += [
                     join(self.exp_path, sweep, f'trial_{trial:02d}', exp)
                 ]
@@ -366,7 +365,7 @@ class Postprocessing:
         for sweep_dir in self._get_sweep_dirs():
             for trial_dir in self._get_trial_dirs(sweep_dir):
                 for x in os.listdir(trial_dir):
-                    all_dirs.append(x)
+                    all_dirs.append(join(trial_dir, x))
 
         dirs_to_delete = set(all_dirs) - set(dirs_to_keep)
 
