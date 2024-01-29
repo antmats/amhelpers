@@ -374,3 +374,5 @@ class Postprocessing:
                 os.remove(f)
             for f in glob.glob(join(d, '*.pkl')):
                 os.remove(f)
+            for f in glob.glob(join(d, '*.json')):
+                os.remove(f)
